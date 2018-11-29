@@ -103,11 +103,11 @@ void main(void)
 				indicatorSwitches &= 254; //11111110   
 			else 
 				indicatorSwitches |= 1; //00000001
-			if(SW2==0)
+			if(SW3==0)
 				indicatorSwitches &= 253; //11111101
 			else 
 				indicatorSwitches |= 2; //00000010
-			if(SW3==0)
+			if(SW4==0)
 				indicatorSwitches &= 251; //11111011
 			else 
 				indicatorSwitches |= 4; //00000100
