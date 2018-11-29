@@ -75,9 +75,9 @@ void main(void)
 
 			//Send fuel level information
 
-			//get potentiometer value which is 0 to 1024 (10 bit)
-			CAN_0.BUF[0].DATA.B[0] = ADC_0.CDR[4].B.CDATA;
-			CAN_0.BUF[0].DATA.B[1] =  ADC_0.CDR[4].B.CDATA >> 8;		
+			//get potentiometer value which is 10 bit
+			CAN_0.BUF[0].DATA.B[0] = ADC_0.CDR[4].B.CDATA; // first 8 bit
+			CAN_0.BUF[0].DATA.B[1] =  ADC_0.CDR[4].B.CDATA >> 8; // last 2 bit		
 			CAN_0.BUF[0].CS.B.CODE = 0x0C;
 			
 			/*
@@ -99,20 +99,26 @@ void main(void)
 			*/
 
 			//if switch 1 is pressed
-			if(SW1==0)
-				indicatorSwitches &= 254; //11111110   
-			else 
+			if(SW1==0){
+				indicatorSwitches &= 254; //(11111110& 00000111 = 110 or 6) 
+			}
+			else {
 				indicatorSwitches |= 1; //00000001
-			if(SW3==0)
+			}
+			if(SW3==0){
 				indicatorSwitches &= 253; //11111101
-			else 
+			}
+			else {
 				indicatorSwitches |= 2; //00000010
-			if(SW4==0)
+			}
+			if(SW4==0){
 				indicatorSwitches &= 251; //11111011
-			else 
+			}
+			else {
 				indicatorSwitches |= 4; //00000100
+			}
 			
-			// send switches information
+			// send indicator switches information
 			CAN_0.BUF[1].DATA.B[0] = indicatorSwitches;
 			CAN_0.BUF[1].CS.B.CODE = 0xC;
 			
@@ -120,10 +126,13 @@ void main(void)
 			CAN_0.BUF[3].CS.B.CODE = 0xC;
 			
 			// send error message
+			//not alive
 			if(engineControlIsAlive == 0) {
 				CAN_0.BUF[4].CS.B.CODE = 0xC;
 				LED7 = ~LED7;
-			} else {
+			} 
+			//alive
+			else {
 				engineControlIsAlive = 0;
 				LED7 = 1;
 			}
@@ -139,12 +148,12 @@ void main(void)
 		if(every_400_ms_interval) {
 			// sending doors status message
 			//if speed > 5 and door is open
-			if( (speed > 5) && (doors_status != 3) )
-			{
+			if( (speed > 5) && (doors_status != 3) ){
 				CAN_0.BUF[2].DATA.B[0] = doors_status << 1;
 			}
-			else
+			else{
 				CAN_0.BUF[2].DATA.B[0] = (doors_status << 1) | 1;
+			}
 			
 			CAN_0.BUF[2].CS.B.CODE = 0xC;
 			every_400_ms_interval = 0;
