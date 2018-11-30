@@ -18,6 +18,11 @@
 #define SPEED_ID 0x502 // Receive from ECU 4
 #define ECU4_ALIVE 0x504 //Receive from ECU 4
 
+int Left_Door=1;
+int Right_Door=1;
+int Door_Status=1;
+
+
 int every_200_ms_interval = 0;
 int every_400_ms_interval = 0; 
 unsigned char indicatorSwitches = 7; //00000111
@@ -147,14 +152,25 @@ void main(void)
 		//1 door is CLOSED
 		if(every_400_ms_interval) {
 			// sending doors status message
-			//if speed > 5 and door is open
-			if( (speed > 5) && (doors_status != 3) ){
-				CAN_0.BUF[2].DATA.B[0] = doors_status << 1;
+			//speed > 5 and door is open
+			// if( (speed > 5) && (doors_status != 3) ){
+			// 	CAN_0.BUF[2].DATA.B[0] = doors_status << 1;
+			// }
+			// else{
+			// 	CAN_0.BUF[2].DATA.B[0] = (doors_status << 1) | 1;
+			// }
+
+
+		 	if(speed > 5 && (Left_Door==0||Right_Door==0)){
+				Door_Status= 0; // Warning ON 
 			}
-			else{
-				CAN_0.BUF[2].DATA.B[0] = (doors_status << 1) | 1;
+
+			else {
+				Door_Status=1; //Warning OFF
 			}
-			
+
+
+			CAN_0.BUF[2].DATA.B[0]=(Door_Status|(Left_Door<<1)|(Right_Door<<2)); 
 			CAN_0.BUF[2].CS.B.CODE = 0xC;
 			every_400_ms_interval = 0;
 		}
@@ -211,8 +227,12 @@ void CANMB0407(void)
    	if(CAN_0.IFRL.B.BUF05I) {
 		switch(CAN_0.RXFIFO.ID.B.STD_ID) {
 			case DOOR_ID:
-				doors_status = CAN_0.RXFIFO.DATA.B[0];
+				//doors_status = CAN_0.RXFIFO.DATA.B[0]; //or CAN_0.BUF[0].DATA.B[0]
 				//LED0 = ~LED0;
+
+				//status of left and right door
+				Left_Door = (CAN_0.RXFIFO.DATA.B[0]& 0b00000001);
+				Right_Door= (CAN_0.RXFIFO.DATA.B[0]& 0b00000010);	
 				break;
 			case SPEED_ID:
 				speed = (CAN_0.RXFIFO.DATA.B[1] << 8) | CAN_0.RXFIFO.DATA.B[0];
